@@ -313,8 +313,17 @@ def widget_serbest_ceviri(alistirma, key_prefix):
     st.markdown(f"### {soru}")
     
     if 'ipucu' in alistirma:
-        with st.expander("💡 İpucu"):
-            st.info(alistirma['ipucu'])
+        ipucu_key = f"{key_prefix}_ipucu_goster"
+        if ipucu_key not in st.session_state:
+            st.session_state[ipucu_key] = False
+        
+        col_ip1, col_ip2 = st.columns([1, 4])
+        with col_ip1:
+            if st.button("💡 İpucu", key=f"{key_prefix}_ipucu_btn"):
+                st.session_state[ipucu_key] = not st.session_state[ipucu_key]
+        with col_ip2:
+            if st.session_state[ipucu_key]:
+                st.info(alistirma['ipucu'])
     
     cevap = st.text_area("Çevirin:", key=f"{key_prefix}_ceviri", height=80)
     
