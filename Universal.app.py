@@ -103,7 +103,9 @@ def klasor_yukle(klasor):
                 v = json_yukle(os.path.join(klasor, dosya))
                 if v:
                     veriler.append(v)
-    return list(reversed(veriler))
+    # konu_id'ye göre küçükten büyüğe sırala (1, 2, 3...)
+    veriler.sort(key=lambda x: x.get('konu_id', 0))
+    return veriler
 
 def tum_dersleri_yukle():
     return klasor_yukle("data/dersler")
@@ -357,7 +359,11 @@ def widget_coktan_secmeli(alistirma, key_prefix):
     """Tek soru çoktan seçmeli (kavram testi için)"""
     st.write(f"**Soru:** {alistirma.get('soru', '')}")
     secenekler = alistirma.get('secenekler', [])
-    cevap = st.radio("Cevabınız:", secenekler, key=f"{key_prefix}_cs_radio", index=None)
+    secenekler_gosterim = ["— Seçiniz —"] + secenekler
+    cevap_idx = st.selectbox("Cevabınız:", range(len(secenekler_gosterim)),
+                              format_func=lambda i: secenekler_gosterim[i],
+                              key=f"{key_prefix}_cs_select")
+    cevap = secenekler_gosterim[cevap_idx] if cevap_idx > 0 else None
     
     if st.button("✅ Kontrol Et", key=f"{key_prefix}_cs_kontrol", type="primary"):
         if not cevap:
@@ -558,14 +564,15 @@ def testler_sayfasi():
                 for idx, soru in enumerate(sorular):
                     st.write(f"**Soru {idx+1}:** {soru.get('soru', '')}")
                     secenekler = soru.get('secenekler', [])
-                    secim = st.radio(
+                    secenekler_gosterim = ["— Seçiniz —"] + secenekler
+                    secim_idx = st.selectbox(
                         "Cevap:",
-                        secenekler,
-                        key=f"test_{test_id}_s_{idx}",
-                        index=None
+                        range(len(secenekler_gosterim)),
+                        format_func=lambda i, s=secenekler_gosterim: s[i],
+                        key=f"test_{test_id}_s_{idx}"
                     )
-                    if secim:
-                        st.session_state.test_cevaplari[idx] = secim[0]
+                    if secim_idx > 0:
+                        st.session_state.test_cevaplari[idx] = secenekler_gosterim[secim_idx][0]
                     st.markdown("---")
                 
                 if len(st.session_state.test_cevaplari) == len(sorular):
